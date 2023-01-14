@@ -1,0 +1,6 @@
+material_name,material_thermal_conductivity
+cement plastering,0.721
+brick wall,0.811
+EPS insulation,0.035
+Cellular concrete,0.188
+Dense concrete,1.740
