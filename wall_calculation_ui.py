@@ -5,10 +5,19 @@ from tkinter.ttk import Separator
 import pandas as pd
 from tkinter import ttk
 
-from u_calculation_service import cal_wall_u
+
 
 from tkinter.messagebox import *
 from tkinter import *
+
+
+def is_numeric(s):
+  s = s.strip()
+  try:
+    s = float(s)
+    return True
+  except:
+    return False
 
 
 def get_wall_ui_frame(_root):
@@ -18,14 +27,6 @@ def get_wall_ui_frame(_root):
   for index, row in df.iterrows():
     x, y = row['material_name'], row['material_thermal_conductivity']
     material_k_dic[x] = y
-
-  def is_numeric(s):
-    s = s.strip()
-    try:
-      s = float(s)
-      return True
-    except:
-      return False
 
   def select_m_name(e):
     input_m_k.delete(0, END)
@@ -79,6 +80,12 @@ def get_wall_ui_frame(_root):
     if len(i_item) == 0:
       return
     list_material.delete(i_item)
+
+  def cal_wall_u(rsi, rso, materials):
+    r_total = rsi + rso
+    for m in materials:
+      r_total += m[1] / m[2]
+    return round(1 / r_total, 4)
 
   def cal_u():
     rsi = input_rsi.get()
