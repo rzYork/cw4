@@ -9,10 +9,26 @@ perimeter_unit = ('m', 'cm')
 area_unit = ('m^2', 'cm^2')
 thickness_unit = ('mm', 'cm', 'dm', 'm')
 
-df_data = pd.read_csv('floor_u_table.csv', header=None, sep=',', dtype='float')
+current_file_name = 'floor_u_table.csv'
+df_data = pd.read_csv(current_file_name, header=None, sep=',', dtype='float')
 x = np.array(df_data.iloc[0, :])
 y = np.array(df_data.iloc[:, 0])
 z = np.array(df_data.iloc[:, :])
+
+
+def load_u_table(file_path):
+  global df_data, x, y, z, current_file_name
+  try:
+    df_data = pd.read_csv(file_path, header=None, sep=',', dtype='float')
+  except:
+    showerror(message="File Format Error!")
+    return False
+
+  x = np.array(df_data.iloc[0, :])
+  y = np.array(df_data.iloc[:, 0])
+  z = np.array(df_data.iloc[:, :])
+  showinfo(message='Successfully loaded u-value table file: ' + file_path)
+  return True
 
 
 def double_linear_interpolation(x, y, z, inputx, inputy):
@@ -21,13 +37,13 @@ def double_linear_interpolation(x, y, z, inputx, inputy):
     j += 1
   while inputx > x[i]:
     i += 1
-  i-=1
-  j-=1
+  i -= 1
+  j -= 1
   z00, z01, z10, z11 = z[j][i], z[j + 1][i], z[j][i + 1], z[j + 1][i + 1]
   ztop = (x[i + 1] - inputx) / (x[i + 1] - x[i]) * z00 + (inputx - x[i]) / (x[i + 1] - x[i]) * z10
   zbottom = (x[i + 1] - inputx) / (x[i + 1] - x[i]) * z01 + (inputx - x[i]) / (x[i + 1] - x[i]) * z11
   ztotal = (y[j + 1] - inputy) / (y[j + 1] - y[j]) * ztop + (inputy - y[j]) / (y[j + 1] - y[j]) * zbottom
-  return round(ztotal,4)
+  return round(ztotal, 4)
 
 
 def is_numeric(s):
@@ -104,17 +120,20 @@ def get_floor_ui_frame(_root):
       showerror(message='Undefined Thickness unit')
       return
     par = p / a
+
     r = t / k
     u = find_u(par, r)
     i_result.delete(0, END)
     i_result.insert(0, u)
+    i_par.delete(0, END)
+    i_par.insert(0, par)
 
   def find_u(par, r):
+
     u = double_linear_interpolation(x, y, z, r, par)
     return u
 
   root = ttk.Frame(_root)
-
   label_title = tk.Label(root, text='Floor Structure U-value calculation', font=('Times', 16, 'bold'))
   l_p = tk.Label(root, text='Floor Structure Perimeter :')
   l_a = tk.Label(root, text='Floor Structure Area         :')
@@ -133,13 +152,15 @@ def get_floor_ui_frame(_root):
   i_thickness_unit = ttk.Combobox(root, width=10, state='readonly')
   i_thickness_unit['values'] = thickness_unit
   i_thickness_unit.current(0)
-  l_k = tk.Label(root, text='Insulation Layer Thermal Conductivity:')
+  l_k = tk.Label(root, text='Insulation Layer Thermal Conductivity(in W/mk):')
   i_k = tk.Entry(root, width=15)
   btn_cal = tk.Button(root, text='Calculate', fg='red', command=cal_u, width=10)
   i_result = tk.Entry(root, width=15)
   l_result = tk.Label(root, text='U-value of floor structure:')
+  l_par = tk.Label(root, text='Perimeter / Area ratio (in m/m^2):')
+  i_par = tk.Entry(root, width=15)
 
-  label_title.grid(row=1, column=1, columnspan=3)
+  label_title.grid(row=1, column=1, columnspan=1)
   l_p.grid(row=2, column=1, sticky='w')
   i_p.grid(row=2, column=2, sticky='w')
   p_unit.grid(row=2, column=3, sticky='w')
@@ -156,6 +177,8 @@ def get_floor_ui_frame(_root):
   btn_cal.grid(row=7, column=3, sticky='w')
   i_result.grid(row=7, column=2, sticky='w')
   l_result.grid(row=7, column=1, sticky='w')
+  l_par.grid(row=8, column=1, sticky='w')
+  i_par.grid(row=8, column=2, sticky='w')
   print('floor calculation ui init ok')
 
   return root

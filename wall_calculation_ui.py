@@ -1,14 +1,14 @@
 from tkinter import ttk
 import tkinter as tk
+from tkinter.messagebox import showerror, showinfo
 from tkinter.ttk import Separator
 
 import pandas as pd
 from tkinter import ttk
-
-
-
-from tkinter.messagebox import *
 from tkinter import *
+
+wall_frame = None
+input_m_name = None
 
 
 def is_numeric(s):
@@ -20,13 +20,34 @@ def is_numeric(s):
     return False
 
 
-def get_wall_ui_frame(_root):
-  material_k_dic = {}
-  df = pd.read_csv('k.csv', delimiter=',')
+material_k_dic = {}
+df = pd.read_csv('k.csv', delimiter=',')
+for index, row in df.iterrows():
+  x, y = row['material_name'], row['material_thermal_conductivity']
+  material_k_dic[x] = y
 
-  for index, row in df.iterrows():
-    x, y = row['material_name'], row['material_thermal_conductivity']
-    material_k_dic[x] = y
+
+def load_k_table(file_path):
+  global material_k_dic
+  try:
+    f = pd.read_csv(file_path, delimiter=',')
+
+    m={}
+    for index, row in f.iterrows():
+      x, y = row['material_name'], row['material_thermal_conductivity']
+      m[x] = y
+      y=float(y)
+  except:
+    showerror(message='Error Open K table file')
+  material_k_dic=m
+  print(material_k_dic)
+  input_m_name['values'] = list(material_k_dic.keys())
+
+  showinfo(message='Successfully Open K-value table file')
+
+
+def get_wall_ui_frame(_root):
+  global wall_frame, input_m_name
 
   def select_m_name(e):
     input_m_k.delete(0, END)
@@ -141,11 +162,9 @@ def get_wall_ui_frame(_root):
 
   list_material = tk.Listbox(wall_frame)
   sep = Separator(wall_frame, orient=HORIZONTAL)
-  sep2 = Separator(wall_frame, orient=HORIZONTAL)
 
   label_result = tk.Label(wall_frame, text="U-value: ", fg='red', font=('Times', 13, 'bold'))
   input_result = tk.Entry(wall_frame, state='normal', width=10)
-  btn_quit = tk.Button(wall_frame, text="Quit", command=wall_frame.quit, width=10)
   btn_cal = tk.Button(wall_frame, text="Calculate U-value", fg="Red", width=15, command=cal_u)
 
   text_title.grid(row=1, column=1)
@@ -173,9 +192,7 @@ def get_wall_ui_frame(_root):
   sep.grid(row=9, column=1, columnspan=4, padx=100, pady=10)
   label_result.grid(row=10, column=1, sticky='e')
   input_result.grid(row=10, column=2, sticky='w')
-  sep2.grid(row=11, column=1, columnspan=4, padx=100, pady=10)
-  btn_cal.grid(row=12, column=1, sticky='we')
-  btn_quit.grid(row=12, column=2, sticky='we', columnspan=3)
+  btn_cal.grid(row=11, column=2, sticky='w')
 
   print('wall_calculation_ui init ok')
 
